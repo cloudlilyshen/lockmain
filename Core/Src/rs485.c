@@ -147,7 +147,7 @@ bool Rs485SendWaitForFb(uint8_t cmd,uint8_t lock_id,uint32_t mask)
     BoardRSSerialSendBuffer(RS485_UART_RS,(uint8_t *)&txRs485,sizeof(txRs485)); 
     RS485_DE_REC();
         
-    ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,50);     
+    ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,100);     
 		if((ulValue&osFlagsError)||((ulValue&mask)==0))
     result = FALSE;
 
@@ -290,10 +290,10 @@ void Rs485TxPollTask(void *argument)
     continue;
 
     rs485.rs485CmdMask=RS485_READ_FLAG_MASK;
-    app->Lock_Total_Nums=1;
+    app->Lock_Total_Nums=8;
     if(rs485.lockId>app->Lock_Total_Nums)
     rs485.lockId = 1;   
-    rs485.lockId = 16;   
+   // rs485.lockId = 16;   
     if(Rs485SendWaitForFb(Rs485Cmd_Read,rs485.lockId,rs485.rs485CmdMask))//读数据正确
     {
 

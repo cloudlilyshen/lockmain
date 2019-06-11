@@ -155,7 +155,7 @@ static void AppInit (void)
 
 AppTask_t *GetApp(void)
 {
-    return &app;
+    return &app;//i am sorry
 }
 
 

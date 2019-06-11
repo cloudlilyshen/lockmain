@@ -83,8 +83,8 @@
       <flags>2</flags>
       <showCmd>3</showCmd>
       <MinPosition>
-        <xPos>-1</xPos>
-        <yPos>-1</yPos>
+        <xPos>-32000</xPos>
+        <yPos>-32000</yPos>
       </MinPosition>
       <MaxPosition>
         <xPos>-1</xPos>
@@ -3667,7 +3667,7 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>F:\project\lock\firmware\lockmain\Drivers\CMSIS\Include\cmsis_armcc.h</Name>
+        <Name>../Drivers/CMSIS/Include/cmsis_armcc.h</Name>
         <ColumnNumber>0</ColumnNumber>
         <TopLine>278</TopLine>
         <CurrentLine>284</CurrentLine>
@@ -3676,7 +3676,7 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>F:\project\lock\firmware\lockmain\Middlewares\Third_Party\FreeRTOS\Source\portable\RVDS\ARM_CM4F\portmacro.h</Name>
+        <Name>../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/portmacro.h</Name>
         <ColumnNumber>0</ColumnNumber>
         <TopLine>184</TopLine>
         <CurrentLine>187</CurrentLine>
@@ -3703,7 +3703,7 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>F:\project\lock\firmware\lockmain\Core\Inc\gprs.h</Name>
+        <Name>../Core/Inc/gprs.h</Name>
         <ColumnNumber>22</ColumnNumber>
         <TopLine>52</TopLine>
         <CurrentLine>55</CurrentLine>
@@ -3721,7 +3721,7 @@
         <PaneID>0</PaneID>
       </Doc>
       <Doc>
-        <Name>F:\project\lock\firmware\lockmain\Core\Inc\main.h</Name>
+        <Name>../Core/Inc/main.h</Name>
         <ColumnNumber>0</ColumnNumber>
         <TopLine>135</TopLine>
         <CurrentLine>140</CurrentLine>

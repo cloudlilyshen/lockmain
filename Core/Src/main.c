@@ -40,7 +40,7 @@ RTC_TimeTypeDef rtcTime;
 RTC_DateTypeDef rtcDate;
 // static SysMsg_t appMsg;  
 // static SysMsgThread_t appMsgThread;
-SysMsg_t appMsg;
+SysMsg_t appMsg;//
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/

@@ -35,7 +35,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-static AppTask_t app;
+static AppTask_t app;//remote pull test 
 RTC_TimeTypeDef rtcTime;
 RTC_DateTypeDef rtcDate;
 // static SysMsg_t appMsg;  

@@ -278,6 +278,7 @@ void HeartTask(void *argument)
   {
     osDelay(5000);
     // osDelay(60000);
+	#if 0
 		if(app->AppStatus >= hardwareReady)
 		{
 			data[0] = (uint8_t )(lock_status<<8);
@@ -290,6 +291,7 @@ void HeartTask(void *argument)
 			gprs.upLoaderFrame++;		
 	
 		}
+	#endif	
 	}
 }
 
@@ -794,7 +796,7 @@ USER_ERROR_CODE GprsThreadHandleRecord(SysMsgThread_t* msgThread)
   GprsRecordSend_t *GprsRecordSend;
 	uint16_t dat_len;
 
-  LOG("Rs485ThreadHandleRecord()");		
+  LOG("GprsThreadHandleRecord()");		
 //解析消息数据
   GprsRecordSend = (GprsRecordSend_t *)msgThread->msg; 
 //上传结果给后台	
@@ -806,7 +808,7 @@ USER_ERROR_CODE GprsThreadHandleRecord(SysMsgThread_t* msgThread)
   gprs.GprsEventFlagMask = GPRS_FLAG_MASK_RECORD_ACK;	
   if(!GprsCommWaitForFbUart(gprs.GprsEventFlagMask))
   {
-    LOG("Rs485ThreadHandleRecord no ACK");	
+    LOG("GprsThreadHandleRecord no ACK");	
   }    
   return errorCode;
 }
@@ -827,7 +829,7 @@ void GprsThreadHandle(SysMsgThread_t* msgThread)
     return;
 	}
 	errorCode = GprsThreadHandleArray[index](msgThread);   
-	LOGA("errorCode is %x",errorCode);
+	// LOGA("errorCode is %x",errorCode);
 }
 void GprsUartMsgHandle(SysMsgUart_t* msgUart)
 {

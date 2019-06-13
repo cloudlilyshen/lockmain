@@ -231,6 +231,7 @@ USER_ERROR_CODE AppThreadHandleSysInit(SysMsgThread_t* msgThread)
   rs485Msg.thread.id = RS485_MSG_Init;      
   osMessageQueuePut(rs485MsgHandle,&rs485Msg,NULL,osWaitForever);           
   osThreadFlagsWait(APP_FLAG_MASK_RS485_INIT,osFlagsWaitAll,osWaitForever);
+  osDelay(1000);
   //运行到此，说明硬件初始化完成
   app.AppStatus = hardwareReady;
   return errorCode;
@@ -254,7 +255,7 @@ void AppThreadHandle(SysMsgThread_t* msgThread)
     return;
 	}
 	errorCode = AppThreadHandleArray[index](msgThread);
-	LOGA("errorCode is %x",errorCode);
+	// LOGA("errorCode is %x",errorCode);
 	     
 }
 

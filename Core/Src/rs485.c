@@ -149,7 +149,10 @@ bool Rs485SendWaitForFb(uint8_t cmd,uint8_t lock_id,uint32_t mask)
         
     ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,100);     
 		if((ulValue&osFlagsError)||((ulValue&mask)==0))
+    {
+    LOG("rs485 not received!!!!");
     result = FALSE;
+    }
 
     osMutexRelease(rs485MutexHandle);    
     return result;  
@@ -271,7 +274,7 @@ void Rs485ThreadHandle(SysMsgThread_t* msgThread)
     return;
 	}
 	errorCode = Rs485ThreadHandleArray[index](msgThread);	
-	LOGA("errorCode is %x",errorCode);
+	// LOGA("errorCode is %x",errorCode);
 }
 
 void Rs485UartMsgHandle(SysMsgUart_t* msgUart)
@@ -290,7 +293,7 @@ void Rs485TxPollTask(void *argument)
     continue;
 
     rs485.rs485CmdMask=RS485_READ_FLAG_MASK;
-    app->Lock_Total_Nums=8;
+    app->Lock_Total_Nums=16;
     if(rs485.lockId>app->Lock_Total_Nums)
     rs485.lockId = 1;   
    // rs485.lockId = 16;   
@@ -386,7 +389,7 @@ void Rs485RxPollTask(void *argument)
               gprsMsg.src = SysMsgSrc_Thread;
               gprsMsg.thread.id = GPRS_MSG_Record; 					
               gprsMsg.thread.msg = GprsRecordSend; 					
-              osMessageQueuePut(gprsMsgHandle,&gprsMsg,NULL,osWaitForever);//发送记录到后台
+              // osMessageQueuePut(gprsMsgHandle,&gprsMsg,NULL,osWaitForever);//发送记录到后台
             }
           }
           osEventFlagsSet(rs485EventFlagsHandle,RS485_READ_FLAG_MASK);//读命令的回复		                					

@@ -99,7 +99,8 @@ static  const char *Gprs_CGATT="AT+CGATT?\r\n";
 static  const char *Gprs_CSTT="AT+CSTT=\"CMNET\"\r\n";
 static  const char *Gprs_CIICR="AT+CIICR\r\n";
 static  const char *Gprs_CIFSR="AT+CIFSR\r\n";
-static char Gprs_CIPSTART[]="AT+CIPSTART=\"TCP\",\"221.178.130.170\",\"20009\"\r\n";/*at+ipconfig=221.178.130.170:20009*/
+// static char Gprs_CIPSTART[]="AT+CIPSTART=\"TCP\",\"221.178.130.170\",\"20009\"\r\n";/*at+ipconfig=221.178.130.170:20009*/
+static char Gprs_CIPSTART[]="AT+CIPSTART=\"TCP\",\"037.100.112.069\",\"27002\"\r\n";/*at+ipconfig=221.178.130.170:20009*/
 // static char Gprs_CIPSTART[]="AT+CIPSTART=\"TCP\",\"117.080.255.121\",\"40089\"\r\n";/*at+ipconfig=117.80.255.121:40089*/
 // static char Gprs_CIPSTART[]="AT+CIPSTART=\"TCP\",\"www.judoinfo.com.cn\",\"40089\"\r\n";
 static char Gprs_CIPSEND[]= "AT+CIPSEND=0005\r\n";
@@ -276,9 +277,9 @@ void HeartTask(void *argument)
 	uint8_t cmd;
   for(;;)
   {
-    osDelay(5000);
+    osDelay(10000);
     // osDelay(60000);
-	#if 0
+	#if 1
 		if(app->AppStatus >= hardwareReady)
 		{
 			data[0] = (uint8_t )(lock_status<<8);
@@ -407,7 +408,7 @@ static void GprsWorkDoRecFullPacket(void * argument)
   	min_bytes = sizeof(GprsHeader_t);
 		if(total_len<min_bytes)
 		return;
-		data_len = gprsRxBuffer[(gprsRxHeader + min_bytes - 2)%GPRS_RX_BYTES]<<8 + gprsRxBuffer[(gprsRxHeader + min_bytes - 1)%GPRS_RX_BYTES];
+		data_len = (gprsRxBuffer[(gprsRxHeader + min_bytes - 2)%GPRS_RX_BYTES]<<8) + gprsRxBuffer[(gprsRxHeader + min_bytes - 1)%GPRS_RX_BYTES];
 		if(data_len>=GPRS_RX_BYTES)//invalid len
 		{
     	gprsRxHeader = (gprsRxHeader + 1)%GPRS_RX_BYTES; 
@@ -456,7 +457,7 @@ static void GprsWorkDoRecFullPacket(void * argument)
 	{
 		//等待命令数据接受完成
 		osDelay(300);
-  	data_len = (gprsRxTailer >= gprsRxHeader) ?(gprsRxTailer - gprsRxHeader):(GPRS_RX_BYTES-(gprsRxHeader - gprsRxTailer));		
+  		data_len = (gprsRxTailer >= gprsRxHeader) ?(gprsRxTailer - gprsRxHeader):(GPRS_RX_BYTES-(gprsRxHeader - gprsRxTailer));		
 		//此处可能接受多条信息
 		if(data_len>GPRS_RX_BYTES)//数据发生错误，丢弃多出的数据
 		data_len = GPRS_RX_BYTES;
@@ -517,10 +518,17 @@ static void GprsWorkDoRecFullPacket(void * argument)
 		{
 			result = strstr((char *)bufferGprs,seek);
 			if(result != NULL) 
-			// osThreadFlagsSet(gprsTaskHandle,gprs.GprsEventFlagMask);
-      osEventFlagsSet(gprsEventFlagsHandle,gprs.GprsEventFlagMask); 			
+			{
+				if(gprs.GprsEventFlagMask == GPRS_FLAG_MASK_SEND_DAT)
+				{
+					// data_len = 11;/*0d da send ok 0d 0a */
+				}
+				// osThreadFlagsSet(gprsTaskHandle,gprs.GprsEventFlagMask);
+				osEventFlagsSet(gprsEventFlagsHandle,gprs.GprsEventFlagMask); 			
+
+			}
 		}
-    gprsRxHeader = (gprsRxHeader + data_len)%GPRS_RX_BYTES;//数据处理完毕，更新header
+		gprsRxHeader = (gprsRxHeader + data_len)%GPRS_RX_BYTES;//数据处理完毕，更新header
 		memset(bufferGprs,0,GPRS_RX_BYTES);		
 	}
 	else

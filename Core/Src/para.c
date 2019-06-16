@@ -40,7 +40,7 @@ void SystemLoadActionParamOnce(void)
         actionPara.chk = ModbusCS_CalcForProtocol((uint8_t*)&actionPara,(SYSTEM_ACTION_PARA_SIZE-1));        
         SystemSaveActionParamOnce();         
     }
-    app->Cabinet_No = actionPara.Cabinet_No[0]<<8 + actionPara.Cabinet_No[1];
+    app->Cabinet_No = (actionPara.Cabinet_No[0]<<8) + actionPara.Cabinet_No[1];
     app->Lock_Total_Nums = actionPara.Lock_Total_Nums;
 }
 

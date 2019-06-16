@@ -37,7 +37,8 @@ extern uint16_t gprsRxTailer;
 #define GPRS_KEY_OFF() \
     HAL_GPIO_WritePin(PWRKEY_CON_GPIO_Port,PWRKEY_CON_Pin,GPIO_PIN_RESET)     
 
-static const char  GPRS_DEFAULT_IP[]="058.211.065.178:30001";
+// static const char  GPRS_DEFAULT_IP[]="058.211.065.178:30001";
+static const char  GPRS_DEFAULT_IP[]="047.100.112.069:27002";/*at+ip=47.100.112.69:27002 */
   
 typedef enum UserErrCode_e
 {

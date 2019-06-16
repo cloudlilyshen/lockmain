@@ -146,6 +146,7 @@ static void AppMgrInit(void)
 static void AppInit (void)
 {
   // AppParaInit();
+// SystemLoadDefaultParamOnce();
   SystemLoadActionParamOnce();      
   AppMgrInit();
   GprsMgrInit();

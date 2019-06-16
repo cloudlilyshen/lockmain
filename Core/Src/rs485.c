@@ -293,15 +293,18 @@ void Rs485TxPollTask(void *argument)
     continue;
 
     rs485.rs485CmdMask=RS485_READ_FLAG_MASK;
-    app->Lock_Total_Nums=16;
+    // app->Lock_Total_Nums=16;
+    app->Lock_Total_Nums=1;
     if(rs485.lockId>app->Lock_Total_Nums)
     rs485.lockId = 1;   
+		osMutexAcquire(gprsMutexHandle,GPRS_UPLOAD_WAIT_TIMES);    
    // rs485.lockId = 16;   
     if(Rs485SendWaitForFb(Rs485Cmd_Read,rs485.lockId,rs485.rs485CmdMask))//读数据正确
     {
 
     }   
     rs485.lockId++;	 
+    osMutexRelease(gprsMutexHandle);	
   }
 }
 

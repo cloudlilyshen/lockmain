@@ -157,7 +157,7 @@ uint8_t GprsCheckHeadTailCRC16(uint8_t* dat,uint16_t len)
 	if((dat[len-1] != '*')||(dat[len-2] != '*'))
 	return 0;
 
-	crc16 = get_crc16(dat,(len-1));
+	crc16 = get_crc16(dat,(len-4));
 	if(!isEqualcrc16(crc16,dat[len-3],dat[len-4]))  
 	return 0; 	
 

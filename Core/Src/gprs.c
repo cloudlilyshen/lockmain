@@ -205,17 +205,20 @@ static bool GprsSendDataWaitForFbUart(uint8_t  *dat,uint16_t len,uint32_t mask)
     return TRUE;
 }
 
+
 void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len)
 { 
 		uint8_t try_times; 
 
 		osMutexAcquire(gprsMutexHandle,GPRS_UPLOAD_WAIT_TIMES);
+		// osMutexAcquire(gprsMutexHandle,osWaitForever);
 		GprsLoadLenForSendMyNetWrite(len);
 		for(try_times=0;try_times<3;try_times++)
 		{
 			gprs.GprsEventFlagMask = GPRS_FLAG_MASK_SEND_DAT_CMD;
 			if(!GprsSendStringWaitForFbUart(Gprs_CIPSEND,gprs.GprsEventFlagMask))//send is ok
 			continue;
+			LOG("GPRS_FLAG_MASK_SEND_DAT_CMD ok");			
 			gprs.GprsEventFlagMask = GPRS_FLAG_MASK_SEND_DAT;
 			if(!GprsSendDataWaitForFbUart(dat,len,gprs.GprsEventFlagMask))
 			{
@@ -227,6 +230,7 @@ void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len)
 				break;
 			}
 		}
+		osDelay(100);
 		osMutexRelease(gprsMutexHandle);		
 		if(try_times>=3)
 		NVIC_SystemReset();//此处重新启动	
@@ -235,11 +239,11 @@ void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len)
 bool GprsCommWaitForFbUart(uint32_t mask)
 {
     uint32_t ulValue;    
-		ulValue=osEventFlagsWait(gprsEventFlagsHandle,mask,osFlagsWaitAll,10000); 		
-		if((ulValue&osFlagsError)||((ulValue&mask)==0))
-		{
-			return FALSE;
-		}
+	ulValue=osEventFlagsWait(gprsEventFlagsHandle,mask,osFlagsWaitAll,10000); 		
+	if((ulValue&osFlagsError)||((ulValue&mask)==0))
+	{
+		return FALSE;
+	}
     return TRUE;
 }
 
@@ -277,7 +281,7 @@ void HeartTask(void *argument)
 	uint8_t cmd;
   for(;;)
   {
-    osDelay(10000);
+    osDelay(5000);
     // osDelay(60000);
 	#if 1
 		if(app->AppStatus >= hardwareReady)
@@ -288,9 +292,15 @@ void HeartTask(void *argument)
 			data[3] = (uint8_t )valve_status;
 			cmd = GprsCmd_Heart;
 			dat_len = uartCreateRespDataPackage((uint8_t *)&GprsUploadHeart,gprs.upLoaderFrame,app->Cabinet_No,app->Lock_Total_Nums,cmd,data,sizeof(data));	
+			LOG("HeartTask");
 			GprsUploadDataWaitForFbUart((uint8_t *)&GprsUploadHeart,dat_len);
-			gprs.upLoaderFrame++;		
-	
+
+			gprs.GprsEventFlagMask = GPRS_FLAG_MASK_HEART_ACK;	
+			if(GprsCommWaitForFbUart(gprs.GprsEventFlagMask))
+			{
+				gprs.upLoaderFrame++;	
+				LOG("HeartTask parse ok");	
+			}
 		}
 	#endif	
 	}
@@ -364,7 +374,8 @@ static void GprsRecMsgParse(void)
 		case GprsCmd_Heart:
 			if(dat_len ==  (sizeof(GprsUploadHeartAck_t) - head_tail_len))
 			{
-      	osEventFlagsSet(gprsEventFlagsHandle,GPRS_FLAG_MASK_HEART_ACK); 						
+      			osEventFlagsSet(gprsEventFlagsHandle,GPRS_FLAG_MASK_HEART_ACK); 		
+		  		LOG("GprsCmd_Heart ok");					
 			}
 		break;			
 		case GprsCmd_Record:
@@ -433,9 +444,9 @@ static void GprsWorkDoRecFullPacket(void * argument)
 		if(GprsCheckHeadTailCRC16(bufferGprs,data_len))
 		{
 			memcpy((uint8_t *)&GprsHeader,bufferGprs,sizeof(GprsHeader));
-			gprsCabinetSeq = GprsHeader.cabinet_seq[0]<<8 + GprsHeader.cabinet_seq[1];
+			gprsCabinetSeq = (GprsHeader.cabinet_seq[0]<<8) + GprsHeader.cabinet_seq[1];
 			//判断接受数据的数量
-			if((data_len == (sizeof(GprsHeader_t) + sizeof(GprsTailer_t) + (GprsHeader.len[0]<<8 + GprsHeader.len[1])))
+			if((data_len == (sizeof(GprsHeader_t) + sizeof(GprsTailer_t) + ((GprsHeader.len[0]<<8) + GprsHeader.len[1])))
 					&& (GprsHeader.Lock_Total_Nums==app->Lock_Total_Nums)
 					&& (gprsCabinetSeq==app->Cabinet_No))
 			GprsRecMsgParse();
@@ -444,7 +455,7 @@ static void GprsWorkDoRecFullPacket(void * argument)
 			// memcpy(GprsMsgChannelArray[index].rec,gprsRxBuffer,total_len);
 			// GprsMsgChannelArray[index].recHandle();
 			//数据处理完毕，
-			gprsRxHeader = (gprsRxHeader + data_len)%gprsRxHeader;
+			gprsRxHeader = (gprsRxHeader + data_len)%GPRS_RX_BYTES;
 		}
 		else
 		{
@@ -521,7 +532,7 @@ static void GprsWorkDoRecFullPacket(void * argument)
 			{
 				if(gprs.GprsEventFlagMask == GPRS_FLAG_MASK_SEND_DAT)
 				{
-					// data_len = 11;/*0d da send ok 0d 0a */
+					data_len = 11;/*0d da send ok 0d 0a */
 				}
 				// osThreadFlagsSet(gprsTaskHandle,gprs.GprsEventFlagMask);
 				osEventFlagsSet(gprsEventFlagsHandle,gprs.GprsEventFlagMask); 			
@@ -651,11 +662,7 @@ USER_ERROR_CODE GprsThreadHandleInit(SysMsgThread_t* msgThread)
 	if(GprsSendStringWaitForFbUart(Gprs_CIPSTART,gprs.GprsEventFlagMask))
 	{
 		app->gprsConnected=TRUE;
-    LOG("app->gprsConnected is ok");	
-		// GprsHeader.cmd = GprsCmd_ReadKeyId;	
-		// GprsHeader.len[0] = 0;	
-		// GprsHeader.len[1] = 1;	
-		// GprsRecMsgParse();		
+		LOG("app->gprsConnected is ok");		
 	}
 	else
 	{
@@ -693,6 +700,7 @@ USER_ERROR_CODE GprsThreadHandleOpenLock(SysMsgThread_t* msgThread)
 	}
 	//上传结果给后台	
 	dat_len = uartCreateRespDataPackage(GprsOpenLockRec->bufferTx,frame,app->Cabinet_No,app->Lock_Total_Nums,cmd,(uint8_t *)&gprs.UserErrCode,1);
+	LOG("GprsThreadHandleOpenLock");
 	GprsUploadDataWaitForFbUart(GprsOpenLockRec->bufferTx,dat_len);	
 	free(GprsOpenLockRec);
   return errorCode;
@@ -722,6 +730,7 @@ USER_ERROR_CODE GprsThreadHandleReadLock(SysMsgThread_t* msgThread)
 
 
 	dat_len = uartCreateRespDataPackage(GprsReadLockRec->bufferTx,frame,app->Cabinet_No,app->Lock_Total_Nums,cmd,lock,2);
+	LOG("GprsThreadHandleReadLock");
 	GprsUploadDataWaitForFbUart(GprsReadLockRec->bufferTx,dat_len);
 	
 	free(GprsReadLockRec);
@@ -751,6 +760,7 @@ USER_ERROR_CODE GprsThreadHandleReadValve(SysMsgThread_t* msgThread)
 
 
 	dat_len = uartCreateRespDataPackage(GprsReadValveRec->bufferTx,frame,app->Cabinet_No,app->Lock_Total_Nums,cmd,valve,2);
+	LOG("GprsThreadHandleReadValve");
 	GprsUploadDataWaitForFbUart(GprsReadValveRec->bufferTx,dat_len);
 
 	
@@ -787,6 +797,7 @@ USER_ERROR_CODE GprsThreadHandleReadKeyId(SysMsgThread_t* msgThread)
 	memcpy(&dat[1],keyStatusArray_temp->key_id,5); 	
 
 	dat_len = uartCreateRespDataPackage(GprsReadKeyIdRec->bufferTx,frame,app->Cabinet_No,app->Lock_Total_Nums,GprsCmd_ReadKeyId,dat,sizeof(dat));
+	LOG("GprsThreadHandleReadKeyId");
 	GprsUploadDataWaitForFbUart(GprsReadKeyIdRec->bufferTx,dat_len);
 
 	
@@ -800,25 +811,26 @@ USER_ERROR_CODE GprsThreadHandleRecord(SysMsgThread_t* msgThread)
 	pAppTask_t app = GetApp();
 
 
-  USER_ERROR_CODE errorCode = USER_ERROR_NONE;
-  GprsRecordSend_t *GprsRecordSend;
+	USER_ERROR_CODE errorCode = USER_ERROR_NONE;
+	GprsRecordSend_t *GprsRecordSend;
 	uint16_t dat_len;
 
-  LOG("GprsThreadHandleRecord()");		
-//解析消息数据
-  GprsRecordSend = (GprsRecordSend_t *)msgThread->msg; 
-//上传结果给后台	
+	LOG("GprsThreadHandleRecord()");		
+	//解析消息数据
+	GprsRecordSend = (GprsRecordSend_t *)msgThread->msg; 
+	//上传结果给后台	
 	dat_len = uartCreateRespDataPackage(GprsRecordSend->bufferTx,gprs.upLoaderFrame,app->Cabinet_No,app->Lock_Total_Nums,GprsCmd_Record,
-                 (uint8_t *)&GprsRecordSend->record_data,sizeof(GprsUploadRecordDat_t));
+					(uint8_t *)&GprsRecordSend->record_data,sizeof(GprsUploadRecordDat_t));
 	gprs.upLoaderFrame++;
+	LOG("GprsThreadHandleRecord");
 	GprsUploadDataWaitForFbUart(GprsRecordSend->bufferTx,dat_len);
-  free(GprsRecordSend);
-  gprs.GprsEventFlagMask = GPRS_FLAG_MASK_RECORD_ACK;	
-  if(!GprsCommWaitForFbUart(gprs.GprsEventFlagMask))
-  {
-    LOG("GprsThreadHandleRecord no ACK");	
-  }    
-  return errorCode;
+	free(GprsRecordSend);
+	gprs.GprsEventFlagMask = GPRS_FLAG_MASK_RECORD_ACK;	
+	if(!GprsCommWaitForFbUart(gprs.GprsEventFlagMask))
+	{
+		LOG("GprsThreadHandleRecord no ACK");	
+	}    
+	return errorCode;
 }
 
 void GprsThreadHandle(SysMsgThread_t* msgThread)

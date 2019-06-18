@@ -150,7 +150,7 @@ bool Rs485SendWaitForFb(uint8_t cmd,uint8_t lock_id,uint32_t mask)
     ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,100);     
 		if((ulValue&osFlagsError)||((ulValue&mask)==0))
     {
-    LOG("rs485 not received!!!!");
+     LOG("rs485 not received!!!!");
     result = FALSE;
     }
 

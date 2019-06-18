@@ -147,7 +147,7 @@ bool Rs485SendWaitForFb(uint8_t cmd,uint8_t lock_id,uint32_t mask)
     BoardRSSerialSendBuffer(RS485_UART_RS,(uint8_t *)&txRs485,sizeof(txRs485)); 
     RS485_DE_REC();
         
-    ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,100);     
+    ulValue=osEventFlagsWait(rs485EventFlagsHandle,mask,osFlagsWaitAll,200);     
 		if((ulValue&osFlagsError)||((ulValue&mask)==0))
     {
      LOG("rs485 not received!!!!");

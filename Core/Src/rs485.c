@@ -297,14 +297,14 @@ void Rs485TxPollTask(void *argument)
     app->Lock_Total_Nums=1;
     if(rs485.lockId>app->Lock_Total_Nums)
     rs485.lockId = 1;   
-		osMutexAcquire(gprsMutexHandle,GPRS_UPLOAD_WAIT_TIMES);    
+		// osMutexAcquire(gprsMutexHandle,GPRS_UPLOAD_WAIT_TIMES);    
    // rs485.lockId = 16;   
     if(Rs485SendWaitForFb(Rs485Cmd_Read,rs485.lockId,rs485.rs485CmdMask))//读数据正确
     {
 
     }   
     rs485.lockId++;	 
-    osMutexRelease(gprsMutexHandle);	
+    // osMutexRelease(gprsMutexHandle);	
   }
 }
 
@@ -370,9 +370,23 @@ void Rs485RxPollTask(void *argument)
             memcpy(keyStatusArray_temp->key_id,rxRs485.key_id,5);
             keyStatusArray_temp->lock_status = rxRs485.lock_status;
             keyStatusArray_temp->err_code = rxRs485.err_code;
+            if(rxRs485.lock_status == lock_status_havekey_locked)
+            {
+              lock_status |= (1<<(rxRs485.lock_no - 1));
+            }
+            else
+            {
+              lock_status &= ~(1<<(rxRs485.lock_no - 1));
+            }
 
-            lock_status |= (keyStatusArray_temp->lock_status<<(rxRs485.lock_no - 1));
-            if((rxRs485.lock_status==havekey_locked)&&(old_lock_status==nokey_unlocked))//上传还钥匙记录
+            if(((rxRs485.lock_status==lock_status_havekey_locked)&&(old_lock_status==lock_status_nokey_unlocked))
+            ||((rxRs485.lock_status==lock_status_nokey_locked)&&(old_lock_status==lock_status_havekey_locked))
+            ||((rxRs485.lock_status==lock_status_havekey_locked)&&(old_lock_status==lock_status_nokey_locked))        
+            )
+            
+            
+            
+            //上传还钥匙记录
             {
               GprsRecordSend_t *GprsRecordSend;
               GprsRecordSend = malloc(sizeof(GprsRecordSend_t));
@@ -392,7 +406,7 @@ void Rs485RxPollTask(void *argument)
               gprsMsg.src = SysMsgSrc_Thread;
               gprsMsg.thread.id = GPRS_MSG_Record; 					
               gprsMsg.thread.msg = GprsRecordSend; 					
-              // osMessageQueuePut(gprsMsgHandle,&gprsMsg,NULL,osWaitForever);//发送记录到后台
+              osMessageQueuePut(gprsMsgHandle,&gprsMsg,NULL,osWaitForever);//发送记录到后台
             }
           }
           osEventFlagsSet(rs485EventFlagsHandle,RS485_READ_FLAG_MASK);//读命令的回复		                					

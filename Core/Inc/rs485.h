@@ -27,11 +27,11 @@ extern uint16_t rs485RxTailer;
 
 enum
 {
-  nokey_unlocked,
-  havekey_locked,
-  nokey_locked,//已上锁，但读不到ID
+  lock_status_locked_init,
+  lock_status_nokey_unlocked,
+  lock_status_havekey_locked,
+  lock_status_nokey_locked,//已上锁，但读不到ID
 };
-
 
 typedef enum Rs485Cmd_e
 {

@@ -198,10 +198,11 @@ static bool GprsSendDataWaitForFbUart(uint8_t  *dat,uint16_t len,uint32_t mask)
     BoardRSSerialSendBuffer(GPRS_UART_RS,dat,len); 
     // ulValue=osThreadFlagsWait(mask,osFlagsWaitAll,10000); 
     ulValue=osEventFlagsWait(gprsEventFlagsHandle,mask,osFlagsWaitAll,10000); 		
-		if((ulValue&osFlagsError)||((ulValue&mask)==0))
-		{
-			return FALSE;
-		}
+	if((ulValue&osFlagsError)||((ulValue&mask)==0))
+	{
+		return FALSE;
+		LOG("GprsSendDataWaitForFbUart is failed!");			
+	}
     return TRUE;
 }
 
@@ -210,18 +211,24 @@ void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len)
 { 
 		uint8_t try_times; 
 
+		LOG("GprsUploadDataWaitForFbUart");			
 		osMutexAcquire(gprsMutexHandle,GPRS_UPLOAD_WAIT_TIMES);
+		LOG("osMutexAcquire is enter");			
 		// osMutexAcquire(gprsMutexHandle,osWaitForever);
 		GprsLoadLenForSendMyNetWrite(len);
 		for(try_times=0;try_times<3;try_times++)
 		{
 			gprs.GprsEventFlagMask = GPRS_FLAG_MASK_SEND_DAT_CMD;
 			if(!GprsSendStringWaitForFbUart(Gprs_CIPSEND,gprs.GprsEventFlagMask))//send is ok
+			{
+			LOG("GPRS_FLAG_MASK_SEND_DAT_CMD failed");			
 			continue;
+			}
 			LOG("GPRS_FLAG_MASK_SEND_DAT_CMD ok");			
 			gprs.GprsEventFlagMask = GPRS_FLAG_MASK_SEND_DAT;
 			if(!GprsSendDataWaitForFbUart(dat,len,gprs.GprsEventFlagMask))
 			{
+				LOG("GprsSendDataWaitForFbUart failed");						
 				continue;
 			}
 			else
@@ -230,10 +237,14 @@ void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len)
 				break;
 			}
 		}
-		osDelay(100);
-		osMutexRelease(gprsMutexHandle);		
+		osDelay(1000);
+		osMutexRelease(gprsMutexHandle);	
+		LOG("osMutexAcquire is exit");					
 		if(try_times>=3)
-		NVIC_SystemReset();//此处重新启动	
+		{
+			LOG("NVIC_SystemReset");			
+			NVIC_SystemReset();//此处重新启动	
+		}
 }
 
 bool GprsCommWaitForFbUart(uint32_t mask)
@@ -381,7 +392,9 @@ static void GprsRecMsgParse(void)
 		case GprsCmd_Record:
 			if(dat_len ==  (sizeof(GprsUploadHeartAck_t) - head_tail_len))
 			{
-      	osEventFlagsSet(gprsEventFlagsHandle,GPRS_FLAG_MASK_RECORD_ACK); 						
+      			osEventFlagsSet(gprsEventFlagsHandle,GPRS_FLAG_MASK_RECORD_ACK); 
+		  		LOG("GprsCmd_Record ok");				  
+
 			}
 		break;			
 	}
@@ -815,7 +828,7 @@ USER_ERROR_CODE GprsThreadHandleRecord(SysMsgThread_t* msgThread)
 	GprsRecordSend_t *GprsRecordSend;
 	uint16_t dat_len;
 
-	LOG("GprsThreadHandleRecord()");		
+	// LOG("GprsThreadHandleRecord()");		
 	//解析消息数据
 	GprsRecordSend = (GprsRecordSend_t *)msgThread->msg; 
 	//上传结果给后台	
@@ -825,6 +838,7 @@ USER_ERROR_CODE GprsThreadHandleRecord(SysMsgThread_t* msgThread)
 	LOG("GprsThreadHandleRecord");
 	GprsUploadDataWaitForFbUart(GprsRecordSend->bufferTx,dat_len);
 	free(GprsRecordSend);
+	LOG("GprsThreadHandleRecord ok");	
 	gprs.GprsEventFlagMask = GPRS_FLAG_MASK_RECORD_ACK;	
 	if(!GprsCommWaitForFbUart(gprs.GprsEventFlagMask))
 	{

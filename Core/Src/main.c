@@ -35,7 +35,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-static AppTask_t app;//remote pull test 
+static AppTask_t app;//realsil test
 RTC_TimeTypeDef rtcTime;
 RTC_DateTypeDef rtcDate;
 // static SysMsg_t appMsg;  
@@ -43,7 +43,7 @@ RTC_DateTypeDef rtcDate;
 SysMsg_t appMsg;//
 /* USER CODE END PTD */
 
-/* Private define ------------------------------------------------------------*/
+/* Private define ---------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
 /* USER CODE END PD */

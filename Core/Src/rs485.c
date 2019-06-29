@@ -388,6 +388,7 @@ void Rs485RxPollTask(void *argument)
             
             //上传还钥匙记录
             {
+              LOG("**************************");		
               GprsRecordSend_t *GprsRecordSend;
               GprsRecordSend = malloc(sizeof(GprsRecordSend_t));
               //此处接受缓存释放，为下次做准备 

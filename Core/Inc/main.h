@@ -179,7 +179,7 @@ extern osThreadId_t gprsTaskHandle;
 
 
 #define NAME_MSG_GPRS "gprsMsg"
-#define GPRS_MSG_NUM 8
+#define GPRS_MSG_NUM 100
 extern osMessageQueueId_t gprsMsgHandle;
 extern SysMsg_t gprsMsg;
 

@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "uart.h"
+#include "gprs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */     
@@ -250,11 +251,18 @@ void BoardRSSerialSendBuffer(Board_RS_Serial_t serialNo, uint8_t* bufferPtr,uint
 
 void BoardRSSerialSendString(Board_RS_Serial_t serialNo,const char *string)
 {
+  // uint16_t len;
+  // len = strlen((char const *)string);
   switch(serialNo)
   {
       case BOARD_UART1:
 		      osMutexAcquire(uart1MutexHandle,UART_SEND_WAIT_TIMES);          
           HAL_UART_Transmit(&huart1,(uint8_t *)string,strlen((char const *)string),100);
+          // for(uint16_t i =0 ;i<len;i++)
+          // {
+          //     gprsTxBuffer[gprsTxTailer] = *string++;
+          //     gprsTxTailer = (gprsTxTailer + 1)%GPRS_TX_BYTES;  
+          // }
  		      osMutexRelease(uart1MutexHandle);		            
           break;
       case BOARD_UART3:

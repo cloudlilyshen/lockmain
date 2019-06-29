@@ -264,6 +264,10 @@ GprsTask_t *GetGprs(void);
 void GprsMgrInit(void);
 void GprsUploadDataWaitForFbUart(uint8_t  *dat,uint16_t len);
 bool GprsCommWaitForFbUart(uint32_t mask);
+
+extern uint8_t gprsTxBuffer[GPRS_TX_BYTES];
+extern uint16_t gprsTxHeader;
+extern uint16_t gprsTxTailer;
 #endif
 
 
